@@ -45,6 +45,9 @@ def change_psk(task, new_psk, ssid):
     r = task.run(task=netmiko_send_command, name=cmd_str, command_string=cmd_str)
     if len(r.result.strip()) != 0:
       #Likely an error.  Successful commands have no output.
+      #But before returning, check if error occurred on the PSK change and re-enable wlan if so
+      if "psk set-key" in cmd_str:
+        r = task.run(task=netmiko_send_command, name=cmd_array[2], command_string=cmd_array[2])
       return Result(host=task.host, changed=changed, failed=True, result='An error occurred during task.')
 
   changed = True
