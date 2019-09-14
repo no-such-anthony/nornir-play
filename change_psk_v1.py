@@ -112,6 +112,9 @@ if __name__ == "__main__":
 
 #Known WLC error output:
 #Request failed for WLAN 6 - WLAN Identifier is invalid.
+#ERROR: Invalid key length 4 - ascii PSK length must be in the range 8-63
+#ERROR: WLAN 2 enabled
+#ERROR: PSK and/or FT-PSK should be configured on WLAN 2
 #Incorrect input! Use 'config wlan security wpa akm [802.1x/psk/cckm/ft/ft psk/pmf 801.x/pmf psk] [enable/disable] <wlan ID>
 #Do I care if flash is busy and it isn't saved?
 #if "Configuration Saved" not in r.result:
