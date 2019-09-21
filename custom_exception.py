@@ -2,6 +2,7 @@ from nornir import InitNornir
 from nornir.plugins.functions.text import print_result
 from nornir.core.task import Result
 
+#only an example, obvisously these are not actual errors.
 
 class MyTaskError(Exception):
     def __init__(self, message):
