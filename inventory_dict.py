@@ -1,5 +1,4 @@
 from nornir import InitNornir
-from collections.abc import Mapping
 from pprint import pprint
 
 
@@ -7,46 +6,13 @@ from pprint import pprint
 #This script will build one.  If you ever needed it.
 
 
-def merge_dicts(dict1, dict2):
-    """ 
-    Recursively merges dict2 into dict1
-    """
-    if not isinstance(dict1, dict) or not isinstance(dict2, dict):
-        return dict2
-    for k in dict2:
-        if k in dict1:
-            dict1[k] = merge_dicts(dict1[k], dict2[k])
-        else:
-            dict1[k] = dict2[k]
-    return dict1
-
-
-def tidy_dict(d):
-    """
-    Remove the Nones that Nornir inserts.
-    """
-    if isinstance(d, Mapping):
-        return {k: tidy_dict(v) for k, v in d.items() if v is not None}
-    else:
-        return d
-
-
 def main():
     nr = InitNornir(config_file='../config.yaml')
     my_hosts = {}
     for host, host_obj in nr.inventory.hosts.items():
         my_hosts[host] = {}
-        #traverse inheritance to get host connection options
-        #no simple way of getting it via the host object
-        host_conn_opt = tidy_dict(nr.inventory.get_inventory_dict()['defaults']['connection_options'])
-        host_groups = host_obj.groups
-        for group in reversed(host_groups):
-            host_conn_opt = merge_dicts(host_conn_opt,
-                                        tidy_dict(nr.inventory.get_inventory_dict()['groups'][group]['connection_options']))
-        host_conn_opt = merge_dicts(host_conn_opt,
-                                    tidy_dict(nr.inventory.get_inventory_dict()['hosts'][host]['connection_options']))       
-        my_hosts[host]['connection_optons'] = host_conn_opt
-        #get the remaining information from the host object
+        #import ipdb; ipdb.set_trace()
+
         my_hosts[host]['hostname'] = host_obj.hostname
         my_hosts[host]['platform'] = host_obj.platform
         my_hosts[host]['username'] = host_obj.username
@@ -54,6 +20,21 @@ def main():
         my_hosts[host]['port'] = host_obj.port
         my_hosts[host]['groups'] = host_obj.groups
         my_hosts[host]['data'] = dict(host_obj.items())
+        #build netmiko and napalm connection parameters, show only differences from base parameters
+        my_hosts[host]['connection_options'] = {}
+        for conn_type in ['netmiko','napalm']:
+            my_hosts[host]['connection_options'][conn_type] = {}
+            if host_obj.get_connection_parameters(conn_type).hostname != host_obj.hostname:
+                my_hosts[host]['connection_options'][conn_type]['hostname']=host_obj.get_connection_parameters(conn_type).hostname
+            if host_obj.get_connection_parameters(conn_type).platform != host_obj.platform:
+                my_hosts[host]['connection_options'][conn_type]['platform']=host_obj.get_connection_parameters(conn_type).platform
+            if host_obj.get_connection_parameters(conn_type).username != host_obj.username:
+                my_hosts[host]['connection_options'][conn_type]['username']=host_obj.get_connection_parameters(conn_type).username
+            if host_obj.get_connection_parameters(conn_type).password != host_obj.password:
+                my_hosts[host]['connection_options'][conn_type]['password']=host_obj.get_connection_parameters(conn_type).password
+            if host_obj.get_connection_parameters(conn_type).port != host_obj.port:
+                my_hosts[host]['connection_options'][conn_type]['port']=host_obj.get_connection_parameters(conn_type).port
+            my_hosts[host]['connection_options'][conn_type]['extras']=host_obj.get_connection_parameters(conn_type).extras        
     pprint(my_hosts)
     
 
