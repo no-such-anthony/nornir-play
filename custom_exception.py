@@ -32,9 +32,11 @@ def main():
     results = nr.run(task=my_task, name="Failure Task Testing")
     print_result(results)
     #import ipdb; ipdb.set_trace()
-    for device_name, multi_result in results.items():
-        print(f'{device_name} had exception: {multi_result.exception}')
     print(f'Failed hosts = {results.failed_hosts}')
+    print('-'*30)
+    for device_name, multi_result in results.items():
+        if multi_result.exception:
+            print(f'{device_name} had exception: {multi_result.exception}')
   
 
 if __name__ == "__main__":
