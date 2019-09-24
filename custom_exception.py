@@ -3,6 +3,13 @@ from nornir.plugins.functions.text import print_result
 from nornir.core.task import Result
 
 #only an example, obvisously these are not actual errors.
+#
+#or could use built-in error such as
+#from nornir.core.exceptions import NornirExecutionError
+#try:
+#    result.raise_on_error()
+#except NornirExecutionError:
+#
 
 class MyTaskError(Exception):
     def __init__(self, message):
