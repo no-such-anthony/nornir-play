@@ -18,7 +18,7 @@ def transform_slog2(host):
     It then makes an update to extras.
     Finally, it re-assigns this updated set of connection parameters back at the
     host level.
-    By Kirk!
+    Thanks Kirk!
     """
 
     # Dynamically set the session_log to be unique per host
