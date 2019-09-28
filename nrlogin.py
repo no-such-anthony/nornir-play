@@ -3,6 +3,7 @@ import sys
 import interactive
 
 #Interactive ssh after automatic login with nornir credentials
+#interactive.py found in paramiko demo directory
 
 def netmiko_interactive(task):
     net_connect = task.host.get_connection("netmiko", task.nornir.config)
