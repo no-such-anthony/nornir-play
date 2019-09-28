@@ -2,7 +2,7 @@ from nornir import InitNornir
 import sys
 import interactive
 
-#Interactive login using netmiko connection
+#Interactive shell using netmiko connection
 #interactive.py found in paramiko demo directory
 
 def netmiko_interactive(task):
