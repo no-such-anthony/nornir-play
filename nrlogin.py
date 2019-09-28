@@ -7,7 +7,8 @@ import interactive
 
 def netmiko_interactive(task):
     net_connect = task.host.get_connection("netmiko", task.nornir.config)
-    print('Press enter to start!')
+    print(net_connect.find_prompt(),end='')
+    sys.stdout.flush()
     interactive.interactive_shell(net_connect.remote_conn)
     
 if len(sys.argv) == 2:
