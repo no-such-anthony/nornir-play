@@ -4,8 +4,8 @@ import interactive
 
 #Interactive shell using netmiko connection
 #interactive.py found in paramiko demo directory
-#modify interactive.py with - https://github.com/rogerhil/paramiko/commit/4c7911a98acc751846e248191082f408126c7e8e
-#fast_cli will speed up login times
+#fix arrow/history issue with - https://github.com/rogerhil/paramiko/commit/4c7911a98acc751846e248191082f408126c7e8e
+#fast_cli speeds up login times
 
 def netmiko_interactive(task):
     net_connect = task.host.get_connection("netmiko", task.nornir.config)
