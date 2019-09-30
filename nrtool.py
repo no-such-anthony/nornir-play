@@ -27,6 +27,8 @@ from datetime import datetime, timedelta
 # python nrtool.py cisco3 cisco4 -c "sh ip int bri;sh ip arp"
 # python nrtool.py cisco3 -c "conf t;int lo999;ip address 10.99.9.99 255.255.255.255;end;copy running startup;\n"
 # python nrtool.py -d devices.txt -x commands.txt
+#
+# still trying to work out how to deal with timeouts and keeping a clean result
 
 
 NUM_WORKERS = 1
