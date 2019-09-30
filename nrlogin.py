@@ -5,7 +5,7 @@ from copy import deepcopy
 
 
 #Interactive shell using netmiko connection
-#interactive.py found in paramiko demo directory
+#interactive.py from paramiko - https://github.com/paramiko/paramiko/blob/master/demos/interactive.py
 #fix arrow/history issue with - https://github.com/rogerhil/paramiko/commit/4c7911a98acc751846e248191082f408126c7e8e
 #fast_cli speeds up login times
 
