@@ -11,10 +11,10 @@ from datetime import datetime, timedelta
 # Nornir Tool
 #
 # -c "command" or -x command-file
-# -n config.yaml
 # device/s or -d device-file
 #
 # TODO:
+# -n config.yaml
 # -g group -p platform --all
 # -w number of workers
 # autoenable if enable secret in inventory
