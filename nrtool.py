@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 # device/s or -d device-file
 #
 # TODO:
-# -g group -p platform
+# -g group -p platform --all
 # -w number of workers
 # autoenable if enable secret in inventory
 # DEBUG = True
@@ -38,9 +38,14 @@ TIMEOUT = 60
 def netmiko_deploy(task, commands):
     net_connect = task.host.get_connection("netmiko", task.nornir.config)
     output = net_connect.find_prompt()
+    output_fix = False
+    prompt = ''
     for cmd_str in commands:
         if cmd_str=='\\n':
-            cmd_str=''           
+            cmd_str=''
+        if output_fix:
+            output += '\n' + prompt
+            output_fix = False
         output += net_connect.send_command_timing(cmd_str, strip_prompt=False, strip_command=False)
         start_time = datetime.now()
         while True:           
@@ -48,11 +53,12 @@ def netmiko_deploy(task, commands):
                 prompt = net_connect.find_prompt()
                 break
             except ValueError:
-                pass
+                output_fix = True
             elapsed_time = datetime.now() - start_time
             if elapsed_time > timedelta(seconds=TIMEOUT):
                 raise ValueError('Timed out waiting for prompt')
-    output += '\n' + prompt
+    if output_fix:
+        output += '\n' + prompt
     if NUM_WORKERS == 1:
         print(output)
     return output
