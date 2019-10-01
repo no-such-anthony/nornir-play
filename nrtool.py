@@ -6,6 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 from datetime import datetime, timedelta
+import yaml
 
 
 # Nornir Tool
@@ -24,45 +25,69 @@ from datetime import datetime, timedelta
 #
 # Unfinished. A work in progess...
 # working examples:
-# python nrtool.py cisco3 cisco4 -c "sh ip int bri;sh ip arp"
-# python nrtool.py cisco3 -c "conf t;int lo999;ip address 10.99.9.99 255.255.255.255;end;copy running startup;\n"
 # python nrtool.py -d devices.txt -x commands.txt
+# python nrtool.py cisco3 cisco4 -x commands.txt
+# python nrtool.py cisco3 cisco4 -c "[{'mode': 'config', 'set': ['int lo999', 'ip address 1.1.1.1'], 'delay-factor': 4}]"
 #
-# still trying to work out how to deal with timeouts and keeping a clean result
+# More complicated, but hopefully more reliable command format
+# ---
+# - mode: config
+#   set:
+#     - int lo999
+#     - ip address 10.99.9.99  255.255.255.255
+#   delay_factor: 1
+# - mode: enable
+#   set:
+#     - wr
+#     - dir
+#     - show ip int bri
+#   delay_factor: 1
+# - mode: interactive
+#   set:
+#     - copy running start
+#     - \n
+#     - dir
+#   delay_factor: 3
 
 
 NUM_WORKERS = 1
 TIMEOUT = 60
 
 #import ipdb; ipdb.set_trace()
+#OSError: Search pattern never detected in send_command_expect: cisco3\#
 
 
 def netmiko_deploy(task, commands):
     net_connect = task.host.get_connection("netmiko", task.nornir.config)
     output = net_connect.find_prompt()
-    output_fix = False
-    prompt = ''
-    for cmd_str in commands:
-        if cmd_str=='\\n':
-            cmd_str=''
-        if output_fix:
-            output += '\n' + prompt
-            output_fix = False
-        output += net_connect.send_command_timing(cmd_str, strip_prompt=False, strip_command=False)
-        start_time = datetime.now()
-        while True:           
-            try:
-                prompt = net_connect.find_prompt()
-                break
-            except ValueError:
-                output_fix = True
-            elapsed_time = datetime.now() - start_time
-            if elapsed_time > timedelta(seconds=TIMEOUT):
-                raise ValueError('Timed out waiting for prompt')
-    if output_fix:
-        output += '\n' + prompt
+
+    for group in commands:
+        group_mode = group.get('mode',None)
+        group_set = group.get('set', None)
+        group_delay_factor = group.get('delay_factor', 1)
+        
+        if group_mode == "enable":
+            for cmd_str in group_set:
+                if cmd_str=='\\n':
+                    cmd_str=''
+                output += net_connect.send_command(cmd_str, strip_prompt=False, strip_command=False, delay_factor=group_delay_factor)
+                
+        elif group_mode == "config":
+            output += net_connect.send_config_set(config_commands=group_set, delay_factor=group_delay_factor)
+            
+        elif group_mode == "interactive":
+            for cmd_str in group_set:
+                if cmd_str=='\\n':
+                    cmd_str=''
+                output += net_connect.send_command_timing(cmd_str, strip_prompt=False, strip_command=False, delay_factor=group_delay_factor)
+                
+        else:
+            pass
+
+    #TODO: move this into loop above to give mode immediate output
     if NUM_WORKERS == 1:
         print(output)
+        
     return output
 
     
@@ -110,7 +135,7 @@ def main(args):
         sys.exit()
 
     if not isinstance(args.c, type(None)):
-        commands = args.c.split(';')
+        commands = yaml.load(args.c)
         
     if not isinstance(args.x, type(None)):
         #check file exists
@@ -121,14 +146,15 @@ def main(args):
             sys.exit()
         #read in file
         with open(filename, "r") as f:
-            commands = f.read()
-        commands = commands.splitlines()       
-         
-    if len(commands) == 0:
-        print('No ommands to run')
-        sys.exit()
+            commands = yaml.load(f)     
 
+    #TODO: Validate commands first?
+    #    sys.exit()
+
+    #start_time = datetime.now()
     results = nr.run(task=netmiko_deploy, commands=commands)
+    #elapsed_time = datetime.now() - start_time
+    #print(elapsed_time)
     print_result(results)
     
 
@@ -140,12 +166,12 @@ def run():
     parser.add_argument(
         "-c",
         metavar="command",
-        help="command string in quotes. separator ;"
+        help="command array in quotes"
         )
     parser.add_argument(
         "-x",
         metavar="command file",
-        help="file containing list of commands"
+        help="yaml file containing list of commands"
         )
     parser.add_argument(
         "-d",
