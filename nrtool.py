@@ -60,35 +60,40 @@ TIMEOUT = 60
 def netmiko_deploy(task, commands):
     net_connect = task.host.get_connection("netmiko", task.nornir.config)
     output = net_connect.find_prompt()
-
+    if NUM_WORKERS==1:  print(output,end='')
+    result = output
+    
     for group in commands:
         group_mode = group.get('mode',None)
-        group_set = group.get('set', None)
+        group_set = group.get('set', [])
         group_delay_factor = group.get('delay_factor', 1)
         
         if group_mode == "enable":
             for cmd_str in group_set:
                 if cmd_str=='\\n':
-                    cmd_str=''
-                output += net_connect.send_command(cmd_str, strip_prompt=False, strip_command=False, delay_factor=group_delay_factor)
+                    cmd_str=''   
+                output = net_connect.send_command(cmd_str, strip_prompt=False, strip_command=False, delay_factor=group_delay_factor)
+                if NUM_WORKERS==1:  print(output,end='')
+                result += output
                 
         elif group_mode == "config":
-            output += net_connect.send_config_set(config_commands=group_set, delay_factor=group_delay_factor)
+            if len(group_set)>0:
+                output = net_connect.send_config_set(config_commands=group_set, delay_factor=group_delay_factor)
+                if NUM_WORKERS==1:  print(output,end='')
+                result += output
             
         elif group_mode == "interactive":
             for cmd_str in group_set:
                 if cmd_str=='\\n':
                     cmd_str=''
-                output += net_connect.send_command_timing(cmd_str, strip_prompt=False, strip_command=False, delay_factor=group_delay_factor)
+                output = net_connect.send_command_timing(cmd_str, strip_prompt=False, strip_command=False, delay_factor=group_delay_factor)
+                if NUM_WORKERS==1:  print(output,end='')
+                result += output
                 
         else:
             pass
-
-    #TODO: move this into loop above to give mode immediate output
-    if NUM_WORKERS == 1:
-        print(output)
-        
-    return output
+    
+    return result
 
     
 def main(args):
@@ -114,7 +119,6 @@ def main(args):
         with open(filename, "r") as f:
             devices = f.read()
         devices = devices.split()
-        
         
     if len(devices) == 0:
         print('No devices to work against')
