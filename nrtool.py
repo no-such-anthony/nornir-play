@@ -70,7 +70,7 @@ def netmiko_deploy(task, commands):
 
         if group_mode not in ('enable','config','interactive'):
             continue
-        if not isinstance(group_set, type(list)) or len(group_set)==0:
+        if not isinstance(group_set, list) or len(group_set)==0:
             continue
         
         if group_mode == "enable":
