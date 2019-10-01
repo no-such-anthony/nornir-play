@@ -35,18 +35,17 @@ import yaml
 #   set:
 #     - int lo999
 #     - ip address 10.99.9.99  255.255.255.255
-#   delay_factor: 1
 # - mode: enable
 #   set:
 #     - wr
 #     - dir
 #     - show ip int bri
-#   delay_factor: 1
 # - mode: interactive
 #   set:
 #     - copy running start
+# - mode: interactive
+#   set:
 #     - \n
-#     - dir
 #   delay_factor: 3
 
 
@@ -156,8 +155,9 @@ def main(args):
         with open(filename, "r") as f:
             commands = yaml.load(f)     
 
-    #TODO: Validate commands first?
-    #    sys.exit()
+    if not isinstance(commands, list):
+        print('Commands should be a list of dicts')
+        sys.exit()
 
     #start_time = datetime.now()
     results = nr.run(task=netmiko_deploy, commands=commands)
