@@ -67,6 +67,11 @@ def netmiko_deploy(task, commands):
         group_mode = group.get('mode',None)
         group_set = group.get('set', [])
         group_delay_factor = group.get('delay_factor', 1)
+
+        if group_mode not in ('enable','config','interactive'):
+            continue
+        if not isinstance(group_set, type(list)) or len(group_set)==0:
+            continue
         
         if group_mode == "enable":
             for cmd_str in group_set:
@@ -77,10 +82,9 @@ def netmiko_deploy(task, commands):
                 result += output
                 
         elif group_mode == "config":
-            if len(group_set)>0:
-                output = net_connect.send_config_set(config_commands=group_set, delay_factor=group_delay_factor)
-                if NUM_WORKERS==1:  print(output,end='')
-                result += output
+            output = net_connect.send_config_set(config_commands=group_set, delay_factor=group_delay_factor)
+            if NUM_WORKERS==1:  print(output,end='')
+            result += output
             
         elif group_mode == "interactive":
             for cmd_str in group_set:
