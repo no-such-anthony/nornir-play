@@ -2,6 +2,7 @@ from nornir import InitNornir
 import sys
 import interactive
 from copy import deepcopy
+from pathlib import Path
 
 
 #Interactive shell using netmiko connection
@@ -11,12 +12,44 @@ from copy import deepcopy
 
 AUTOENABLE = True
 FAST_CLI = True
+SHELL_LOG = True
+LOG_DIR = 'session-logs'
+LOG_MODE = 'w'
 
 
+#Tee StdOut to File
+class TeeStdOut(object):
+    def __init__(self, name, mode):
+        self.file = open(name, mode)
+        self.stdout = sys.stdout
+        sys.stdout = self
+
+    def close(self):
+        if self is None:
+            return
+        if self.stdout is not None:
+            sys.stdout = self.stdout
+            self.stdout = None
+        if self.file is not None:
+            self.file.close()
+            self.file = None
+
+    def write(self, data):
+        self.file.write(data)
+        self.stdout.write(data)
+
+    def flush(self):
+        self.file.flush()
+        self.stdout.flush()
+
+    def __del__(self):
+        self.close()
+
+        
 def netmiko_interactive(task):
     host = task.host
     net_connect = task.host.get_connection("netmiko", task.nornir.config)
-    #TODO:  Print your own login banner?
+    
     if AUTOENABLE:
         netmiko_extras = host.get_connection_parameters("netmiko").dict()['extras']
         #Skip if no enable secret
@@ -25,9 +58,17 @@ def netmiko_interactive(task):
                 net_connect.enable()
             except ValueError as e:
                 print("Incorrect enable password.")
+                
+    if SHELL_LOG:
+        stdout_tee = TeeStdOut(f'{LOG_DIR}/{host}.log', LOG_MODE)
+
+    #TODO:  Print your own login banner?        
     print(net_connect.find_prompt(),end='')
     sys.stdout.flush()
     interactive.interactive_shell(net_connect.remote_conn)
+
+    if SHELL_LOG:
+        stdout_tee.close()
 
     
 def main(device_name):
@@ -43,6 +84,9 @@ def main(device_name):
             extras["fast_cli"] = True
             netmiko_params.extras = extras
             host_obj.connection_options["netmiko"] = netmiko_params
+
+    if SHELL_LOG:
+        Path(f"{LOG_DIR}").mkdir(exist_ok=True)
             
     nr.run(task=netmiko_interactive)
 
