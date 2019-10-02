@@ -4,6 +4,7 @@ import interactive
 from copy import deepcopy
 from pathlib import Path
 import argparse
+from netmiko import NetMikoAuthenticationException, NetMikoTimeoutException
 
 
 #Interactive shell using netmiko connection
@@ -56,11 +57,17 @@ def netmiko_interactive(task):
     try:
         net_connect = task.host.get_connection("netmiko", task.nornir.config)
     except ValueError:
-        print("Login timed out looking for prompt.")
+        print("Login process timed out looking for prompt.")
         print("Use optional argument -f <global_delay_factor>")
-        print("eg -f 2, and increase until login success.")
+        print("eg -f2, and increase until login success.")
         sys.exit()
-    
+    except NetMikoAuthenticationException:
+        print("Authentication failure.  Check credentials.")
+        sys.exit()
+    except NetMikoTimeoutException:
+        print("Login timeout failure.")
+        sys.exit()
+        
     if AUTOENABLE:
         netmiko_extras = host.get_connection_parameters("netmiko").dict()['extras']
         #Skip if no enable secret
