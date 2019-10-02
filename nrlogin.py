@@ -6,8 +6,11 @@ from pathlib import Path
 
 
 #Interactive shell using netmiko connection
+#
 #interactive.py from paramiko - https://github.com/paramiko/paramiko/blob/master/demos/interactive.py
 #fix arrow/history issue with - https://github.com/rogerhil/paramiko/commit/4c7911a98acc751846e248191082f408126c7e8e
+#fix pty resize and encoding  - https://github.com/sirosen/paramiko-shell/blob/master/interactive_shell.py
+#
 #fast_cli speeds up login times
 
 AUTOENABLE = True
