@@ -3,6 +3,7 @@ import sys
 import interactive
 from copy import deepcopy
 from pathlib import Path
+from datetime import datetime, timedelta
 
 
 #Interactive shell using netmiko connection
@@ -11,13 +12,15 @@ from pathlib import Path
 #fix arrow/history issue with - https://github.com/rogerhil/paramiko/commit/4c7911a98acc751846e248191082f408126c7e8e
 #fix pty resize and encoding  - https://github.com/sirosen/paramiko-shell/blob/master/interactive_shell.py
 #
-#fast_cli speeds up login times
+#fast_cli speeds up login times, but then you may then need to modify global delay factor for devices/platforms
+#that are slow to log into, eg arista, srx...
 
 AUTOENABLE = True
 FAST_CLI = True
-SHELL_LOG = True
+SHELL_LOG = False
 LOG_DIR = 'session-logs'
 LOG_MODE = 'w'
+TIMEOUT = 60
 
 
 #Tee StdOut to File
@@ -52,7 +55,6 @@ class TeeStdOut(object):
 def netmiko_interactive(task):
     host = task.host
     net_connect = task.host.get_connection("netmiko", task.nornir.config)
-    
     if AUTOENABLE:
         netmiko_extras = host.get_connection_parameters("netmiko").dict()['extras']
         #Skip if no enable secret
@@ -65,8 +67,9 @@ def netmiko_interactive(task):
     if SHELL_LOG:
         stdout_tee = TeeStdOut(f'{LOG_DIR}/{host}.log', LOG_MODE)
 
-    #TODO:  Print your own login banner?        
-    print(net_connect.find_prompt(),end='')
+    #TODO:  Print your own login banner?
+
+    print(net_connect.find_prompt(),end='')         
     sys.stdout.flush()
     interactive.interactive_shell(net_connect.remote_conn)
 
