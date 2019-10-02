@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from nornir import InitNornir
 import sys
 import interactive
