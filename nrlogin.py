@@ -3,7 +3,7 @@ import sys
 import interactive
 from copy import deepcopy
 from pathlib import Path
-from datetime import datetime, timedelta
+import argparse
 
 
 #Interactive shell using netmiko connection
@@ -13,14 +13,13 @@ from datetime import datetime, timedelta
 #fix pty resize and encoding  - https://github.com/sirosen/paramiko-shell/blob/master/interactive_shell.py
 #
 #fast_cli speeds up login times, but then you may then need to modify global delay factor for devices/platforms
-#that are slow to log into, eg arista, srx...
+#that are slow to log into, eg arista, srx...how about an optional -f [factor].
 
 AUTOENABLE = True
 FAST_CLI = True
 SHELL_LOG = False
 LOG_DIR = 'session-logs'
 LOG_MODE = 'w'
-TIMEOUT = 60
 
 
 #Tee StdOut to File
@@ -54,7 +53,14 @@ class TeeStdOut(object):
         
 def netmiko_interactive(task):
     host = task.host
-    net_connect = task.host.get_connection("netmiko", task.nornir.config)
+    try:
+        net_connect = task.host.get_connection("netmiko", task.nornir.config)
+    except ValueError:
+        print("Login timed out looking for prompt.")
+        print("Use optional argument -f <global_delay_factor>")
+        print("eg -f 2, and increase until login success.")
+        sys.exit()
+    
     if AUTOENABLE:
         netmiko_extras = host.get_connection_parameters("netmiko").dict()['extras']
         #Skip if no enable secret
@@ -77,17 +83,26 @@ def netmiko_interactive(task):
         stdout_tee.close()
 
     
-def main(device_name):
+def main(args):
+    #import ipdb; ipdb.set_trace()
+    device_name = args.device
+    gd_factor = args.f
+    
     nr = InitNornir('config.yaml',
                     core={'num_workers': 1},
                     )
     nr = nr.filter(name=device_name)
 
-    if FAST_CLI:
+    if len(nr.inventory.hosts.keys()) == 0:
+        print("No matching device found in Nornir inventory.")
+        sys.exit()
+
+    if FAST_CLI or gd_factor:
         for host, host_obj in nr.inventory.hosts.items():
             netmiko_params = host_obj.get_connection_parameters("netmiko")
             extras = deepcopy(netmiko_params.extras)
-            extras["fast_cli"] = True
+            if FAST_CLI:  extras["fast_cli"] = True
+            if gd_factor:  extras["global_delay_factor"] = gd_factor
             netmiko_params.extras = extras
             host_obj.connection_options["netmiko"] = netmiko_params
 
@@ -98,9 +113,20 @@ def main(device_name):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        device_name = sys.argv[1]
-    else:
-        print("Device name required.")
-        sys.exit(1)
-    main(device_name=device_name)
+    
+    parser = argparse.ArgumentParser(
+        description="Nornir Login"
+        ) 
+    parser.add_argument(
+        "-f",
+        metavar="factor",
+        type=int,
+        help="global delay factor - for devices with slow logins"
+        )
+    parser.add_argument(
+        'device',
+        metavar='device',
+        type=str,
+        help='device name from Nornir inventory to connect to')
+    args = parser.parse_args()
+    main(args=args)
