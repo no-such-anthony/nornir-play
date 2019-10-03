@@ -62,6 +62,7 @@ TIMEOUT = 60
 
 def netmiko_deploy(task, commands):
     net_connect = task.host.get_connection("netmiko", task.nornir.config)
+    import ipdb; ipdb.set_trace()
     output = net_connect.find_prompt()
     prompt = output
     if NUM_WORKERS==1:  print(output,end='')
@@ -71,7 +72,6 @@ def netmiko_deploy(task, commands):
         group_mode = group.get('mode',None)
         group_set = group.get('set', [])
         group_delay_factor = group.get('delay_factor', 1)
-        group_expect_string = group.get('expect_string', prompt)
 
         if group_mode not in ('enable','config','interactive'):
             continue
@@ -81,18 +81,28 @@ def netmiko_deploy(task, commands):
         if group_mode == "enable":
             for cmd_str in group_set:
                 if cmd_str=='\\n':
-                    cmd_str=''   
-                output = net_connect.send_command(cmd_str,
-                                                  strip_prompt=False,
-                                                  strip_command=False,
-                                                  delay_factor=group_delay_factor,
-                                                  expect_string=rf'{group_expect_string}')
+                    cmd_str=''
+                group_expect_string = group.get('expect_string', None)
+                if group_expect_string:
+                    output = net_connect.send_command(cmd_str,
+                                                      strip_prompt=False,
+                                                      strip_command=False,
+                                                      delay_factor=group_delay_factor,
+                                                      expect_string=rf'{group_expect_string}'
+                                                      )
+                else:
+                    output = net_connect.send_command(cmd_str,
+                                                      strip_prompt=False,
+                                                      strip_command=False,
+                                                      delay_factor=group_delay_factor
+                                                      )                    
                 if NUM_WORKERS==1:  print(output,end='')
                 result += output
                 
         elif group_mode == "config":
             output = net_connect.send_config_set(config_commands=group_set,
-                                                 delay_factor=group_delay_factor)
+                                                 delay_factor=group_delay_factor
+                                                 )
             if NUM_WORKERS==1:  print(output,end='')
             result += output
             
@@ -103,7 +113,8 @@ def netmiko_deploy(task, commands):
                 output = net_connect.send_command_timing(cmd_str,
                                                          strip_prompt=False,
                                                          strip_command=False,
-                                                         delay_factor=group_delay_factor)
+                                                         delay_factor=group_delay_factor
+                                                         )
                 if NUM_WORKERS==1:  print(output,end='')
                 result += output
                 
