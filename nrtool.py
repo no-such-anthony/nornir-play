@@ -43,10 +43,14 @@ import yaml
 # - mode: interactive
 #   set:
 #     - copy running start
-# - mode: interactive
+# - mode: enable
 #   set:
 #     - \n
-#   delay_factor: 3
+#   delay_factor: 5
+#
+# Other supported keys
+# expect_string
+#
 
 
 NUM_WORKERS = 1
@@ -59,6 +63,7 @@ TIMEOUT = 60
 def netmiko_deploy(task, commands):
     net_connect = task.host.get_connection("netmiko", task.nornir.config)
     output = net_connect.find_prompt()
+    prompt = output
     if NUM_WORKERS==1:  print(output,end='')
     result = output
     
@@ -66,6 +71,7 @@ def netmiko_deploy(task, commands):
         group_mode = group.get('mode',None)
         group_set = group.get('set', [])
         group_delay_factor = group.get('delay_factor', 1)
+        group_expect_string = group.get('expect_string', prompt)
 
         if group_mode not in ('enable','config','interactive'):
             continue
@@ -76,12 +82,17 @@ def netmiko_deploy(task, commands):
             for cmd_str in group_set:
                 if cmd_str=='\\n':
                     cmd_str=''   
-                output = net_connect.send_command(cmd_str, strip_prompt=False, strip_command=False, delay_factor=group_delay_factor)
+                output = net_connect.send_command(cmd_str,
+                                                  strip_prompt=False,
+                                                  strip_command=False,
+                                                  delay_factor=group_delay_factor,
+                                                  expect_string=rf'{group_expect_string}')
                 if NUM_WORKERS==1:  print(output,end='')
                 result += output
                 
         elif group_mode == "config":
-            output = net_connect.send_config_set(config_commands=group_set, delay_factor=group_delay_factor)
+            output = net_connect.send_config_set(config_commands=group_set,
+                                                 delay_factor=group_delay_factor)
             if NUM_WORKERS==1:  print(output,end='')
             result += output
             
@@ -89,12 +100,17 @@ def netmiko_deploy(task, commands):
             for cmd_str in group_set:
                 if cmd_str=='\\n':
                     cmd_str=''
-                output = net_connect.send_command_timing(cmd_str, strip_prompt=False, strip_command=False, delay_factor=group_delay_factor)
+                output = net_connect.send_command_timing(cmd_str,
+                                                         strip_prompt=False,
+                                                         strip_command=False,
+                                                         delay_factor=group_delay_factor)
                 if NUM_WORKERS==1:  print(output,end='')
                 result += output
                 
         else:
             pass
+        
+    if NUM_WORKERS==1:  print('\n\n')
     
     return result
 
