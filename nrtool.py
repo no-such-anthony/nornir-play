@@ -43,7 +43,7 @@ import yaml
 # - mode: interactive
 #   set:
 #     - copy running start
-# - mode: enable
+# - mode: interactive
 #   set:
 #     - \n
 #   delay_factor: 2
