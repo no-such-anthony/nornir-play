@@ -17,6 +17,7 @@ from netmiko import NetMikoAuthenticationException, NetMikoTimeoutException
 #fast_cli speeds up login times, but then you may then need to modify global delay factor for devices/platforms
 #that are slow to log into, eg arista, srx...how about an optional -f [factor].
 
+CONFIG_FILE = 'config.yaml'
 AUTOENABLE = True
 FAST_CLI = True
 SHELL_LOG = False
@@ -96,7 +97,7 @@ def main(args):
     device_name = args.device
     gd_factor = args.f
     
-    nr = InitNornir('config.yaml',
+    nr = InitNornir(CONFIG_FILE,
                     core={'num_workers': 1},
                     )
     nr = nr.filter(name=device_name)
@@ -138,3 +139,4 @@ if __name__ == "__main__":
         help='device name from Nornir inventory to connect to')
     args = parser.parse_args()
     main(args=args)
+    
