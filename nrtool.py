@@ -30,6 +30,7 @@ import yaml
 # python nrtool.py cisco3 cisco4 -c "[{'mode': 'config', 'set': ['int lo999', 'ip address 1.1.1.1'], 'delay-factor': 4}]"
 #
 # More complicated, but hopefully more reliable command format
+# Example 1:
 # ---
 # - mode: config
 #   set:
@@ -38,7 +39,6 @@ import yaml
 # - mode: enable
 #   set:
 #     - wr
-#     - dir
 #     - show ip int bri
 # - mode: interactive
 #   set:
@@ -46,12 +46,20 @@ import yaml
 # - mode: enable
 #   set:
 #     - \n
-#   delay_factor: 5
+#   delay_factor: 2
 #
-# Other supported keys
-# expect_string
+# Example 2:
+# ---
+# - mode: interactive
+#   set:
+#     - copy running start
+# - mode: enable
+#   set:
+#     - '\n'
+#   delay_factor: 2
+#   expect_string: '#'
 #
-
+# The copy will likely finish faster in example 2, but it requires the expect_string to behave as expected.
 
 NUM_WORKERS = 1
 TIMEOUT = 60
@@ -62,9 +70,7 @@ TIMEOUT = 60
 
 def netmiko_deploy(task, commands):
     net_connect = task.host.get_connection("netmiko", task.nornir.config)
-    import ipdb; ipdb.set_trace()
     output = net_connect.find_prompt()
-    prompt = output
     if NUM_WORKERS==1:  print(output,end='')
     result = output
     
@@ -79,10 +85,10 @@ def netmiko_deploy(task, commands):
             continue
         
         if group_mode == "enable":
+            group_expect_string = group.get('expect_string', None)
             for cmd_str in group_set:
                 if cmd_str=='\\n':
-                    cmd_str=''
-                group_expect_string = group.get('expect_string', None)
+                    cmd_str='\n'
                 if group_expect_string:
                     output = net_connect.send_command(cmd_str,
                                                       strip_prompt=False,
@@ -94,8 +100,7 @@ def netmiko_deploy(task, commands):
                     output = net_connect.send_command(cmd_str,
                                                       strip_prompt=False,
                                                       strip_command=False,
-                                                      delay_factor=group_delay_factor
-                                                      )                    
+                                                      delay_factor=group_delay_factor)                    
                 if NUM_WORKERS==1:  print(output,end='')
                 result += output
                 
@@ -109,7 +114,7 @@ def netmiko_deploy(task, commands):
         elif group_mode == "interactive":
             for cmd_str in group_set:
                 if cmd_str=='\\n':
-                    cmd_str=''
+                    cmd_str='\n'
                 output = net_connect.send_command_timing(cmd_str,
                                                          strip_prompt=False,
                                                          strip_command=False,
