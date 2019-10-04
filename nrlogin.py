@@ -6,7 +6,7 @@ from copy import deepcopy
 from pathlib import Path
 import argparse
 from netmiko import NetMikoAuthenticationException, NetMikoTimeoutException
-
+import os
 
 #Interactive shell using netmiko connection
 #
@@ -17,11 +17,11 @@ from netmiko import NetMikoAuthenticationException, NetMikoTimeoutException
 #fast_cli speeds up login times, but then you may then need to modify global delay factor for devices/platforms
 #that are slow to log into, eg arista, srx...how about an optional -f [factor].
 
-CONFIG_FILE = 'config.yaml'
+CONFIG_FILE = os.path.expanduser('~/config.yaml')
 AUTOENABLE = True
 FAST_CLI = True
 SHELL_LOG = False
-LOG_DIR = 'session-logs'
+LOG_DIR = os.path.expanduser('~/session-logs')
 LOG_MODE = 'w'
 
 
