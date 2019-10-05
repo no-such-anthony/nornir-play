@@ -4,6 +4,15 @@ from nornir.core.task import Result
 
 #only an example, obvisously these are not actual errors.
 
+#temporary fix for nornir <=2.3 "logging: {'enabled': False}'" 
+#nornir skips logger config when set to false and ends up 
+#with default logger settings, eg level NOTSET(0), etc
+#when logger.error('') runs within Nornir exception it prints to screen
+#
+#import logging
+#logging.getLogger("nornir").addHandler(logging.NullHandler())
+#logging.getLogger("nornir").propagate = False
+
 class MyTaskError(Exception):
     def __init__(self, message):
         self.message = message
