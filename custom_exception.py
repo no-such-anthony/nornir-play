@@ -7,7 +7,7 @@ from nornir.core.task import Result
 #temporary fix for nornir <=2.3 "logging: {'enabled': False}'" 
 #nornir skips logger config when set to false and ends up 
 #with default logger settings, eg level NOTSET(0), etc
-#when logger.error('') runs within Nornir task exception it prints 
+#when logger.error('') runs within Nornir Task exception it prints 
 #as stderr to screen
 #
 #import logging
