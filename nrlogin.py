@@ -97,7 +97,7 @@ def main(args):
     device_name = args.device
     gd_factor = args.f
     
-    nr = InitNornir(CONFIG_FILE,
+    nr = InitNornir(config_file=CONFIG_FILE,
                     core={'num_workers': 1},
                     )
     nr = nr.filter(name=device_name)
