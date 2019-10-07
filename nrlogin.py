@@ -71,7 +71,7 @@ def netmiko_interactive(task):
         sys.exit()
         
     if AUTOENABLE:
-        netmiko_extras = host.get_connection_parameters("netmiko").dict()['extras']
+        netmiko_extras = host.get_connection_parameters("netmiko").extras
         #Skip if no enable secret
         if netmiko_extras.get('secret',None):
             try:
