@@ -4,6 +4,7 @@ from nornir.plugins.functions.text import print_result
 from nornir.plugins.tasks.files import write_file
 from nornir.plugins.tasks.networking import netmiko_send_command
 from datetime import datetime
+import re
 
 BACKUPDIR = 'configs'
 DIFFDIR = 'diffs'
@@ -13,15 +14,21 @@ def backup(task, path):
   data = task.run(task=netmiko_send_command,
                  command_string='show running-config',
                  enable=True)
+
+  regex1 = re.compile('^ntp clock-period.*$', re.MULTILINE)
+  regex2 = re.compile('^!Time.*$',re.MULTILINE)
+  data.result = regex1.sub('', data.result)
+  data.result = regex2.sub('', data.result)
+
   task.run(write_file,
            filename=f'{path}/{host}.cfg',
            content=data.result)
  
 def main():
   nr = InitNornir(config_file='../config.yaml',
-                  core={'num_workers': 20},
+                  core={'num_workers': 15},
                   )
-  ios_filt = ~F(platform="cisco_wlc") #& F(name='')
+  ios_filt = ~F(platform="cisco_wlc") #& F(name='xxxxx')
   ios = nr.filter(ios_filt)
   start_time = datetime.now()
   result = ios.run(task=backup, path=BACKUPDIR)
@@ -57,11 +64,20 @@ if __name__ == "__main__":
 #2.ValueError: Failed to enter enable mode. Please ensure you pass the 'secret' argument to ConnectHandler
 #3.Corrupt backups < 100 characters
 #
-#The fix
+#Fixes
 #- use netmiko 3.0 develop branch
 #- use blocking_timeout: 20 in extras (possible TACACS+ throttling)
-#
-#or 
+#and/or 
 #- keep reducing num_workers
+#
+#
+#Diff Issues
+#A lot of Cisco devices will show these in the diffs...hence the pre-processing before write_file
+#
+#-!Time: Wed Oct  9 11:02:39 2019
+#+!Time: Wed Oct  9 14:53:31 2019
+#and
+#-ntp clock-period 36028974
+#+ntp clock-period 36028975
 #
 #
