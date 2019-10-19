@@ -22,10 +22,11 @@ def add_extras(task,cmds=[]):
         for k in result[0].result:
             host[k] = result[0].result[k]
 
-    for cmd in cmds:
-        v = result[0].result.get(cmd,None)
-        if v:
-            host[cmd] = v
+    else:
+        for cmd in cmds:
+            v = result[0].result.get(cmd,None)
+            if v:
+                host[cmd] = v
 
 
 def get_extras(task):
