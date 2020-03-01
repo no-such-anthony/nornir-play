@@ -149,7 +149,7 @@ Issues.  With 20 workers on 1300 devices I experienced the following random erro
   and may have fallen back to local
 
 Fixes
-- Use Netmiko 3.0, hopeully you should no longer need while/try/except block.
+- Use Netmiko 3.0, hopefully you should no longer need while/try/except block.
 or 
 - keep reducing num_workers
 or
