@@ -7,7 +7,7 @@ from netmiko import NetMikoAuthenticationException, NetMikoTimeoutException
 import time
 from datetime import datetime
 import re
-from creds import insert_creds
+#from creds import insert_creds
 
 
 BACKUPDIR = '../configs'
@@ -129,7 +129,7 @@ def main():
   nr = InitNornir(config_file='../config.yaml',
                   core={'num_workers': 100},
                   )
-  insert_creds(nr.inventory)
+  #insert_creds(nr.inventory)
   ios_filt = ~F(platform="cisco_wlc")
   ios = nr.filter(ios_filt)
   start_time = datetime.now()
