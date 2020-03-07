@@ -52,7 +52,9 @@ def backup(task):
       # could also look for commands typically found at the end of configs
       if len(data.result) < 100:
         raise ValueError('Config unexpectedly short')
-
+        
+      break
+    
     except NornirSubTaskError as e:
         if isinstance(e.result.exception, NetMikoTimeoutException):
           #Looking for Timed-out reading channel 
