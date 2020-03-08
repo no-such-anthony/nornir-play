@@ -86,6 +86,8 @@ def backup(task):
         if isinstance(e.result.exception, OSError):
           if 'Search pattern' in e.result[0].result:
             print(f'{host} hit error {e.result.exception}')
+            net_connect = task.host.get_connection("netmiko", task.nornir.config)
+            print(f'{host} prompt = {net_connect.find_prompt()}')
             if retries == 2:
               raise e         
           else:
