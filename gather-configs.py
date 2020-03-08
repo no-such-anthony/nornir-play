@@ -131,7 +131,7 @@ def backup(task):
 
 def main():
   nr = InitNornir(config_file='../config.yaml',
-                  core={'num_workers': 100},
+                  core={'num_workers': 50},
                   )
   #insert_creds(nr.inventory)
   ios_filt = ~F(platform="cisco_wlc")
