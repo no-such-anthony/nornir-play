@@ -56,10 +56,10 @@ def backup(task):
       break
     
     except NornirSubTaskError as e:
+        last_exception = e.result.exception
         if isinstance(e.result.exception, NetMikoTimeoutException):
           #Looking for Timed-out reading channel 
           if 'reading channel' in e.result[0].result:
-            print(f'{host} hit error {e.result.exception}')
             if retries == 2:
               raise e         
           else:
@@ -68,7 +68,6 @@ def backup(task):
         if isinstance(e.result.exception, NetMikoAuthenticationException):
           #Looking for cisco_nxos
           if 'cisco_nxos' in e.result[0].result:
-            print(f'{host} hit error {e.result.exception}')
             if retries == 2:
               raise e         
           else:
@@ -77,7 +76,6 @@ def backup(task):
         if isinstance(e.result.exception, ValueError):
           #Looking for Failed to enter enable mode
           if 'enable mode' in e.result[0].result:
-            print(f'{host} hit error {e.result.exception}')
             if retries == 2:
               raise e         
           else:
@@ -85,9 +83,8 @@ def backup(task):
 
         if isinstance(e.result.exception, OSError):
           if 'Search pattern' in e.result[0].result:
-            print(f'{host} hit error {e.result.exception}')
             net_connect = task.host.get_connection("netmiko", task.nornir.config)
-            print(f'{host} prompt = {net_connect.find_prompt()}')
+            print(f'{host} prompt problem = {net_connect.find_prompt()}')
             if retries == 2:
               raise e         
           else:
@@ -95,22 +92,24 @@ def backup(task):
 
         if isinstance(e.result.exception, EOFError):
           if 'closed by remote device' in e.result[0].result:
-            print(f'{host} hit error {e.result.exception}')
             if retries == 2:
               raise e         
           else:
             raise e
 
+        print(f'{host} hit error {last_exception} - retrying...')
         task.results.pop()
-        time.sleep(10)
+        time.sleep(5)
 
     except ValueError as e:
+      last_exception = e
       if 'unexpectedly short' in e:
-        print(f"{host} hit error {e}")
         if retries == 2:
           raise e
       else:
         raise e
+
+      print(f'{host} hit error {last_exception} - retrying...')
       task.results.pop()   
       time.sleep(5)
 
