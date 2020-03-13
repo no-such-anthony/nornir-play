@@ -40,6 +40,7 @@ def config_filter_cisco_ios(cfg):
 
 def backup(task):
   host = task.host
+  last_exception = None
 
   retries = 0
   while retries <= 2:
