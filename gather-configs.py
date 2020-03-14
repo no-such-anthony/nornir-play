@@ -186,7 +186,7 @@ or
 or
 - use global delay factor of 2
 or
--enter - from gevent import monkey; monkey.patch_all() - as the very first line of code - boom!
+-enter - from gevent import monkey; monkey.patch_all() - as the very first line of code - boom! mic drop.
 
 Diff Issues
 A lot of Cisco devices will show these in the diffs...hence the filter before write_file
