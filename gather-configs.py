@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#from gevent import monkey; monkey.patch_all()
 from nornir import InitNornir
 from nornir.core.filter import F
 from nornir.plugins.tasks.files import write_file
