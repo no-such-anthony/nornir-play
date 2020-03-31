@@ -62,7 +62,7 @@ def get_extras(task):
     my_extras={}
 
     for cmd in extras:
-        result = task.run(task=netmiko_send_command, name=cmd, command_string=cmd, use_genie=True)
+        result = task.run(task=netmiko_send_command, name=cmd, command_string=cmd, use_textfsm=True)
         if type(result[0].result) == str:
             result[0].result={}
             #print(f'something wrong with {host.name} on {cmd}')
