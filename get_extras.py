@@ -2,8 +2,7 @@ from nornir import InitNornir
 from nornir.core.filter import F
 from nornir.plugins.tasks.networking import netmiko_send_command
 from nornir.plugins.functions.text import print_result
-from nornir.plugins.tasks.data import load_yaml
-import yaml
+import json
 from pprint import pprint
 
 EXTRAS_DIR = 'extras'
@@ -15,16 +14,20 @@ def add_extras(task,cmds=[]):
     if not isinstance(cmds, list):
         return
 
-    infile = f'{EXTRAS_DIR}/{host.name}.yaml'
-    result = task.run(task=load_yaml, file=infile)
+    infile = f'{EXTRAS_DIR}/{host.name}.json'
+    try:
+        with open(infile) as f:
+            result = json.load(f)
+    except FileNotFoundError:
+        result = []
 
     if cmds == []:
-        for k in result[0].result:
-            host[k] = result[0].result[k]
+        for k in result:
+            host[k] = result[k]
 
     else:
         for cmd in cmds:
-            v = result[0].result.get(cmd,None)
+            v = result.get(cmd,None)
             if v:
                 host[cmd] = v
 
@@ -65,11 +68,8 @@ def get_extras(task):
             #print(f'something wrong with {host.name} on {cmd}')
         my_extras[cmd.replace(" ", "_")]=result[0].result
 
-    o = "---\n"
-    o += "#created by script\n"
-    o += yaml.dump(my_extras)
-
-    outfile = f'{EXTRAS_DIR}/{host.name}.yaml'
+    o = json.dumps(my_extras)
+    outfile = f'{EXTRAS_DIR}/{host.name}.json'
 
     with open(outfile, "w") as f:
         f.write(o)
