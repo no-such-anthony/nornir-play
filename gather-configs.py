@@ -174,7 +174,7 @@ Issues.  With 20 workers on 1300 devices I experienced the following random erro
 Plus others if we increase workers.
 
 Possible Fixes?
-- Use Netmiko 3.0
+- use latest Netmiko
 or 
 - keep reducing num_workers
 or
@@ -182,13 +182,16 @@ or
   - catch errors and retry
   - check if len(data.result) < 100 and retry
 or
-- Look into your AAA server
+- look into your AAA server
 or
-- Close connections within task
+- close connections within task
 or
-- use global delay factor of 2
+- use global delay factor of 2 or more
 or
--enter - from gevent import monkey; monkey.patch_all() - as the very first line of code - boom! mic drop.
+- enter - from gevent import monkey; monkey.patch_all() - as the very first line of code - well on the particular server I was having trouble with it fixed the issues
+  if there is nothing wrong with your server, then running this may actually make the task run sligtly slower than without
+or
+- run script on a different server...surprisingly this can actually work and none of the above needed...
 
 Diff Issues
 A lot of Cisco devices will show these in the diffs...hence the filter before write_file
