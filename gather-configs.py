@@ -62,7 +62,7 @@ def backup(task):
         last_exception = e.result.exception
         if isinstance(e.result.exception, NetMikoTimeoutException):
           #Looking for Timed-out reading channel 
-          if 'reading channel' in e.result[0].result:
+          if 'reading channel' or 'existing session' in e.result[0].result:
             if retries == 2:
               raise e         
           else:
@@ -178,7 +178,7 @@ Possible Fixes?
 or 
 - keep reducing num_workers
 or
-- two retries, 
+- two retries, as in above code
   - catch errors and retry
   - check if len(data.result) < 100 and retry
 or
@@ -186,12 +186,18 @@ or
 or
 - close connections within task
 or
-- use global delay factor of 2 or more
+- use Netmiko global delay factor of 2 or more
+or
+- increase Netmiko conn_timeout to 20s or more
 or
 - enter - from gevent import monkey; monkey.patch_all() - as the very first line of code - well on the particular server I was having trouble with it fixed the issues
   if there is nothing wrong with your server, then running this may actually make the task run sligtly slower than without
 or
-- run script on a different server...surprisingly this can actually work and none of the above needed...
+- if Nornir 3, try gevent runner - again, same issue with monkey above
+ - https://github.com/no-such-anthony/nornir3_play/blob/master/gevent_runner.py
+ - https://github.com/no-such-anthony/nornir3_play/blob/master/gevent-runner-test.py
+or
+- run script on a different server...surprisingly this can sometimes work and none of the above needed...
 
 Diff Issues
 A lot of Cisco devices will show these in the diffs...hence the filter before write_file
